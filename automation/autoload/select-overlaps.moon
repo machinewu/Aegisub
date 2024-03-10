@@ -17,9 +17,9 @@ tr = aegisub.gettext
 export script_name = tr"Select overlaps"
 export script_description = tr"Select lines which begin while another non-comment line is active"
 export script_author = "Thomas Goyne"
-export script_version = "2"
+export script_version = "2.1"
 
-select_overlaps = (subs, selection) ->
+select_overlaps = (subs, selection, active_line) ->
     is_dialogue = (line) ->
         line.class == "dialogue" and not line.comment
 
@@ -46,6 +46,17 @@ select_overlaps = (subs, selection) ->
         else
             table.insert overlaps, line.i
 
-    overlaps
+    table.sort overlaps
+    new_active_line = nil
+    for i in *overlaps
+        if i >= active_line
+            new_active_line = i
+            break
+
+    if #overlaps == 0
+        aegisub.dialog.display { { class: "label", label: "No overlapping lines found!" } }, { "&OK" }, { cancel: "&OK" }
+        selection, active_line
+    else
+        overlaps, new_active_line or overlaps[1]
 
 aegisub.register_macro script_name, script_description, select_overlaps
